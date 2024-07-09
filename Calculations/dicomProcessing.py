@@ -266,6 +266,10 @@ def wed_truncation_correction(wed, truncation_percentage, scaling_parameter=anam
 class Image:
     def __init__(self, directory, file, process=True, thresholds=None):
 
+        self.ISOCENTER = None
+        self.MatrixCenter = None
+        self.dimensions = None
+        self.nb_slices = None
         if thresholds is None:
             thresholds = sanders_threshold_list
         self.thresholds = thresholds
@@ -549,6 +553,18 @@ class Image:
             self.SSDE = self.f * self.CTDI_vol
         except (AttributeError, TypeError):
             self.f, self.SSDE = np.nan, np.nan
+        try:
+            self.dimensions = np.array([self.PixelSize, self.PixelSize])
+            self.dy, self.dx = np.multiply(self.raw_hu.shape, self.dimensions)
+            self.MatrixCenter = np.array([self.dx / 2, self.dy / 2, 0])
+        except (AttributeError, IndexError, TypeError):
+            pass
+        try:
+            self.ISOCENTER = self.MatrixCenter - self.ReconstructionTargetCenter + self.DataCollectionCenter
+        except (AttributeError, ValueError, TypeError):
+            self.ReconstructionTargetCenter = self.MatrixCenter
+            self.DataCollectionCenter = self.MatrixCenter
+            self.ISOCENTER = self.MatrixCenter
 
     def set_slice_number(self, new_slice_number):
         self.SliceNumber = new_slice_number
